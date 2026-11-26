@@ -1,40 +1,97 @@
-<!--
-  ~ /*
-  ~  * Copyright 2016-2017 the original author or authors.
-  ~  *
-  ~  * Licensed under the Apache License, Version 2.0 (the "License");
-  ~  * you may not use this file except in compliance with the License.
-  ~  * You may obtain a copy of the License at
-  ~  *
-  ~  *      http://www.apache.org/licenses/LICENSE-2.0
-  ~  *
-  ~  * Unless required by applicable law or agreed to in writing, software
-  ~  * distributed under the License is distributed on an "AS IS" BASIS,
-  ~  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~  * See the License for the specific language governing permissions and
-  ~  * limitations under the License.
-  ~  */
-  -->
+<div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show py-2 small mb-2" role="alert">
+  <i class="bi bi-check-circle-fill me-1"></i>{{ successMessage }}
+  <button type="button" class="btn-close btn-sm" (click)="successMessage = ''"></button>
+</div>
 
-<table [hidden]="noVisits" class=" table table-sm">
-  <thead>
-  <tr>
-    <th>Visit Date</th>
-    <th>Description</th>
-    <th>Actions</th>
-  </tr>
+<div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show py-2 small mb-2" role="alert">
+  <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ errorMessage }}
+  <button type="button" class="btn-close btn-sm" (click)="errorMessage = ''"></button>
+</div>
+
+<div *ngIf="!visits || visits.length === 0 || noVisits" class="text-muted small fst-italic py-2">
+  Nenhuma consulta registrada para este pet.
+</div>
+
+<table *ngIf="visits && visits.length > 0 && !noVisits" class="table table-sm table-hover align-middle mb-0">
+  <thead class="table-light">
+    <tr>
+      <th>Data</th>
+      <th>Status</th>
+      <th>Descrição</th>
+      <th class="text-end">Ações</th>
+    </tr>
   </thead>
-  <tr *ngFor="let visit of visits">
-    <td>{{ visit.date }}</td>
-    <td>{{ visit.description }}</td>
-    <td>
-      <button class="btn btn-secondary" (click)="editVisit(visit)">Edit Visit</button>
-      <button class="btn btn-secondary" (click)="deleteVisit(visit)">Delete Visit</button>
-    </td>
-  </tr>
+  <tbody>
+    <tr *ngFor="let visit of visits">
+      <td class="text-nowrap">{{ visit.date }}</td>
+      <td>
+        <span *ngIf="isCompleted(visit)" class="badge bg-success">
+          <i class="bi bi-check-circle-fill me-1"></i>Concluída
+        </span>
+        <span *ngIf="!isCompleted(visit)" class="badge bg-warning text-dark">
+          <i class="bi bi-clock-history me-1"></i>Agendada
+        </span>
+      </td>
+      <td>{{ cleanDescription(visit) }}</td>
+      <td class="text-end text-nowrap">
+        <div class="d-inline-flex gap-1">
+          <button
+            *ngIf="!isCompleted(visit) && authService.canManageVets()"
+            type="button"
+            class="btn btn-success btn-sm"
+            [disabled]="completingVisitId === visit.id"
+            (click)="markAsCompleted(visit)"
+            title="Marcar atendimento como concluído"
+          >
+            <i class="bi bi-check2-circle me-1"></i>
+            {{ completingVisitId === visit.id ? 'Salvando...' : 'Concluir' }}
+          </button>
+
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="editVisit(visit)">
+            <i class="bi bi-pencil"></i>
+          </button>
+
+          <button type="button" class="btn btn-outline-danger btn-sm" (click)="openDeleteModal(visit)">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  </tbody>
 </table>
 
-
-
-
-
+<!-- Modal de Confirmação de Exclusão de Consulta -->
+<div
+  *ngIf="visitPendingDeletion"
+  class="modal d-block"
+  tabindex="-1"
+  style="background: rgba(0, 0, 0, 0.55)"
+  role="dialog"
+  aria-modal="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-exclamation-octagon-fill me-2"></i>Confirmar Exclusão de Consulta
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="cancelDelete()"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-2">
+          Deseja realmente excluir o agendamento do dia
+          <strong>{{ visitPendingDeletion.date }}</strong>?
+        </p>
+        <p class="text-muted small mb-0">
+          Descrição: <em>{{ cleanDescription(visitPendingDeletion) }}</em>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelDelete()">Cancelar</button>
+        <button type="button" class="btn btn-danger" (click)="confirmDeleteVisit()">
+          <i class="bi bi-trash-fill me-1"></i>Sim, Excluir Consulta
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

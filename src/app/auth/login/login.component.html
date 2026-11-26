@@ -1,0 +1,87 @@
+<div class="container py-5">
+  <div class="row justify-content-center align-items-center g-4">
+    <div class="col-lg-6">
+      <div class="p-4 bg-white rounded-3 shadow-sm border">
+        <span class="badge bg-success mb-2">Clínica Veterinária · Sistema Integrado</span>
+        <h1 class="h3 fw-bold mb-3">PetClinic — Portal de Atendimento</h1>
+        <p class="text-muted">
+          Plataforma de gestão clínica com controle de acesso por perfil operacional:
+        </p>
+        <ul class="list-group list-group-flush mb-3">
+          <li class="list-group-item px-0">
+            <i class="bi bi-shield-lock-fill text-danger me-2"></i>
+            <strong>Administrador:</strong> cadastra e remove Recepcionistas e Veterinários e gerencia toda a clínica.
+          </li>
+          <li class="list-group-item px-0">
+            <i class="bi bi-person-badge-fill text-primary me-2"></i>
+            <strong>Recepcionista:</strong> cadastra tutores (donos), pets e realiza o agendamento de consultas.
+          </li>
+          <li class="list-group-item px-0">
+            <i class="bi bi-heart-pulse-fill text-success me-2"></i>
+            <strong>Veterinário:</strong> adiciona pets, registra atendimentos, marca consultas como concluídas e gerencia especialidades.
+          </li>
+        </ul>
+        <div class="alert alert-light border mb-0 small">
+          <i class="bi bi-info-circle me-1"></i>
+          Novos colaboradores (Recepcionista ou Veterinário) são cadastrados pelo Administrador no menu <strong>Equipe</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <h2 class="h4 fw-bold mb-1">Entrar no Sistema</h2>
+          <p class="text-muted small mb-4">Use sua conta cadastrada para acessar o painel.</p>
+
+          <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <div>{{ errorMessage }}</div>
+          </div>
+
+          <form (ngSubmit)="onSubmit()">
+            <div class="mb-3">
+              <label for="username" class="form-label fw-semibold">Usuário</label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                class="form-control"
+                [(ngModel)]="username"
+                placeholder="Ex: admin, dra.ana, recepcao1"
+                required
+              />
+            </div>
+
+            <div class="mb-4">
+              <label for="password" class="form-label fw-semibold">Senha</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                class="form-control"
+                [(ngModel)]="password"
+                placeholder="Digite sua senha"
+                required
+              />
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 fw-semibold py-2" [disabled]="loading">
+              <i class="bi bi-box-arrow-in-right me-1"></i>
+              {{ loading ? 'Autenticando...' : 'Acessar Sistema' }}
+            </button>
+          </form>
+
+          <hr class="my-4" />
+
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="text-muted small">Acesso inicial: <code>admin / admin</code></span>
+            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="fillAdminDemo()">
+              Preencher Admin
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

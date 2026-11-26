@@ -1,30 +1,9 @@
-/*
- *
- *  * Copyright 2016-2017 the original author or authors.
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
- *
- */
-
-/**
- * @author Vitaliy Fedoriv
- */
-
-import {ChangeDetectorRef, Component, inject, OnInit} from '@angular/core';
-import {Vet} from '../vet';
-import {VetService} from '../vet.service';
-import {Router} from '@angular/router';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
+import { Vet } from '../vet';
+import { VetService } from '../vet.service';
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-vet-list',
@@ -35,46 +14,75 @@ import { finalize } from 'rxjs/operators';
 export class VetListComponent implements OnInit {
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  vets: Vet[];
-  errorMessage: string;
-  responseStatus: number;
-  isVetDataReceived: boolean = false;
+  vets: Vet[] = [];
+  errorMessage = '';
+  successMessage = '';
+  responseStatus = 0;
+  isVetDataReceived = false;
+  vetPendingDeletion: Vet | null = null;
 
-  constructor(private vetService: VetService, private router: Router) {
-    this.vets = [];
+  constructor(
+    private vetService: VetService,
+    private router: Router,
+    public authService: AuthService
+  ) {}
+
+  ngOnInit(): void {
+    this.vetService
+      .getVets()
+      .pipe(
+        finalize(() => {
+          this.isVetDataReceived = true;
+          this.changeDetectorRef.markForCheck();
+        })
+      )
+      .subscribe({
+        next: (vets) => (this.vets = vets),
+        error: (error) =>
+          (this.errorMessage = typeof error === 'string' ? error : 'Erro ao carregar veterinários.')
+      });
   }
 
-  ngOnInit() {
-    this.vetService.getVets().pipe(
-      finalize(() => {
-        this.isVetDataReceived = true;
-        this.changeDetectorRef.markForCheck();
-      })
-    ).subscribe(
-      vets => this.vets = vets,
-      error => this.errorMessage = error as any);
+  openDeleteModal(vet: Vet): void {
+    this.errorMessage = '';
+    this.vetPendingDeletion = vet;
   }
 
-  deleteVet(vet: Vet) {
-    this.vetService.deleteVet(vet.id.toString()).pipe(
-      finalize(() => this.changeDetectorRef.markForCheck())
-    ).subscribe(
-      response => {
-        this.responseStatus = response;
-        this.vets = this.vets.filter(currentItem => !(currentItem.id === vet.id));
-      },
-      error => this.errorMessage = error as any);
+  cancelDelete(): void {
+    this.vetPendingDeletion = null;
   }
 
-  gotoHome() {
+  confirmDeleteVet(): void {
+    if (!this.vetPendingDeletion) {
+      return;
+    }
+    const target = this.vetPendingDeletion;
+    this.vetService
+      .deleteVet(target.id.toString())
+      .pipe(finalize(() => this.changeDetectorRef.markForCheck()))
+      .subscribe({
+        next: (response) => {
+          this.responseStatus = response;
+          this.vets = this.vets.filter((currentItem) => currentItem.id !== target.id);
+          this.vetPendingDeletion = null;
+          this.successMessage = `Veterinário(a) ${target.firstName} ${target.lastName} removido(a) com sucesso.`;
+        },
+        error: (error) => {
+          this.vetPendingDeletion = null;
+          this.errorMessage = typeof error === 'string' ? error : 'Não foi possível excluir o veterinário.';
+        }
+      });
+  }
+
+  gotoHome(): void {
     this.router.navigate(['/welcome']);
   }
 
-  addVet() {
+  addVet(): void {
     this.router.navigate(['/vets/add']);
   }
 
-  editVet(vet: Vet) {
+  editVet(vet: Vet): void {
     this.router.navigate(['/vets', vet.id, 'edit']);
   }
 }

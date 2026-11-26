@@ -1,9 +1,4 @@
-<!--
-  Copyright 2016-2017 the original author or authors.
-  Licensed under the Apache License, Version 2.0.
--->
-
-<div class="container-fluid main-wrapper px-0">
+<div class="container-fluid main-wrapper px-0" *ngIf="authService.isLoggedIn()">
   <nav class="navbar navbar-expand-lg navbar-petclinic w-100" aria-label="Main navigation">
     <div class="container-fluid">
       <button
@@ -23,77 +18,86 @@
       <div id="petclinicNavbar" class="collapse navbar-collapse">
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <a class="nav-link" routerLink="/welcome" routerLinkActive="active" title="home page">
+            <a class="nav-link" routerLink="/welcome" routerLinkActive="active">
               <i class="bi bi-house-fill" aria-hidden="true"></i>
-              <span> Home</span>
+              <span> Painel</span>
             </a>
           </li>
 
           <li class="nav-item dropdown" routerLinkActive="active">
-            <button
-              class="nav-link dropdown-toggle"
-              type="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
+            <button class="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-person-fill" aria-hidden="true"></i>
-              Owners
+              Tutores &amp; Pets
             </button>
             <ul class="dropdown-menu">
               <li>
                 <a class="dropdown-item" routerLink="/owners">
                   <i class="bi bi-search" aria-hidden="true"></i>
-                  <span> Search</span>
+                  <span> Buscar Tutores</span>
                 </a>
               </li>
               <li>
                 <a class="dropdown-item" routerLink="/owners/add">
                   <i class="bi bi-plus-lg" aria-hidden="true"></i>
-                  <span> Add New</span>
+                  <span> Cadastrar Tutor</span>
                 </a>
               </li>
             </ul>
           </li>
 
           <li class="nav-item dropdown" routerLinkActive="active">
-            <button
-              class="nav-link dropdown-toggle"
-              type="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
+            <button class="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
-              Veterinarians
+              Veterinários
             </button>
             <ul class="dropdown-menu">
               <li>
                 <a class="dropdown-item" routerLink="/vets">
                   <i class="bi bi-search" aria-hidden="true"></i>
-                  <span> All</span>
+                  <span> Listar Todos</span>
                 </a>
               </li>
-              <li>
+              <li *ngIf="authService.canManageVets()">
                 <a class="dropdown-item" routerLink="/vets/add">
                   <i class="bi bi-plus-lg" aria-hidden="true"></i>
-                  <span> Add New</span>
+                  <span> Cadastrar Veterinário</span>
                 </a>
               </li>
             </ul>
           </li>
 
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/pettypes" routerLinkActive="active" title="pettypes">
+          <li class="nav-item" *ngIf="authService.canManageVets()">
+            <a class="nav-link" routerLink="/pettypes" routerLinkActive="active">
               <i class="bi bi-heart-fill" aria-hidden="true"></i>
-              <span> Pet Types</span>
+              <span> Espécies</span>
             </a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/specialties" routerLinkActive="active" title="specialties">
+
+          <li class="nav-item" *ngIf="authService.canManageVets()">
+            <a class="nav-link" routerLink="/specialties" routerLinkActive="active">
               <i class="bi bi-list-ul" aria-hidden="true"></i>
-              <span> Specialties</span>
+              <span> Especialidades</span>
+            </a>
+          </li>
+
+          <li class="nav-item" *ngIf="authService.isAdmin()">
+            <a class="nav-link" routerLink="/staff" routerLinkActive="active">
+              <i class="bi bi-shield-lock-fill" aria-hidden="true"></i>
+              <span> Equipe (Admin)</span>
             </a>
           </li>
         </ul>
+
+        <div class="d-flex align-items-center gap-3 text-white">
+          <span class="small">
+            <i class="bi bi-person-circle me-1"></i>
+            <strong>{{ authService.getUsername() }}</strong>
+            <span class="badge bg-secondary ms-1">{{ authService.getProfileLabel() }}</span>
+          </span>
+          <button type="button" class="btn btn-outline-light btn-sm" (click)="authService.logout()">
+            <i class="bi bi-box-arrow-right me-1"></i>Sair
+          </button>
+        </div>
       </div>
     </div>
   </nav>
@@ -106,8 +110,8 @@
 <footer class="container-fluid footer-wrapper">
   <div class="row h-100 align-items-center">
     <div class="col-12 text-center">
-      <img src="./assets/images/angular.png" alt="Angular" height="80" width="80" />
-      <img src="./assets/images/spring-pivotal-logo.png" alt="Sponsored by Pivotal" />
+      <img src="./assets/images/angular.png" alt="Angular" height="60" width="60" />
+      <img src="./assets/images/spring-pivotal-logo.png" alt="Sponsored by Pivotal" height="45" />
     </div>
   </div>
 </footer>

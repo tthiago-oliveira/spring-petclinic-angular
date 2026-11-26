@@ -1,30 +1,107 @@
-<!--
-  ~ /*
-  ~  * Copyright 2016-2017 the original author or authors.
-  ~  *
-  ~  * Licensed under the Apache License, Version 2.0 (the "License");
-  ~  * you may not use this file except in compliance with the License.
-  ~  * You may obtain a copy of the License at
-  ~  *
-  ~  *      http://www.apache.org/licenses/LICENSE-2.0
-  ~  *
-  ~  * Unless required by applicable law or agreed to in writing, software
-  ~  * distributed under the License is distributed on an "AS IS" BASIS,
-  ~  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~  * See the License for the specific language governing permissions and
-  ~  * limitations under the License.
-  ~  */
-  -->
+<div class="container py-4">
+  <div class="p-4 mb-4 bg-white rounded-3 shadow-sm border d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+      <span
+        class="badge mb-2"
+        [ngClass]="{
+          'bg-danger': authService.isAdmin(),
+          'bg-success': authService.isVeterinario(),
+          'bg-primary': authService.isRecepcionista()
+        }"
+      >
+        Perfil: {{ authService.getProfileLabel() }}
+      </span>
+      <h1 class="h3 fw-bold mb-1">Olá, {{ authService.getUsername() }}!</h1>
+      <p class="text-muted mb-0" *ngIf="authService.isAdmin()">
+        Você tem acesso administrativo completo para gerenciar a equipe (Recepcionistas e Veterinários) e toda a operação da clínica.
+      </p>
+      <p class="text-muted mb-0" *ngIf="authService.isVeterinario()">
+        Você pode cadastrar pets, registrar atendimentos, marcar consultas agendadas como concluídas e gerenciar especialidades.
+      </p>
+      <p class="text-muted mb-0" *ngIf="authService.isRecepcionista()">
+        Você pode cadastrar e atualizar tutores (donos), vincular novos pets e agendar consultas veterinárias.
+      </p>
+    </div>
 
-<h1 class="title">Welcome to Petclinic</h1>
+    <div class="d-flex flex-wrap gap-2">
+      <a routerLink="/owners/add" class="btn btn-success">
+        <i class="bi bi-person-plus-fill me-1"></i>Novo Tutor
+      </a>
+      <a routerLink="/owners" class="btn btn-outline-dark">
+        <i class="bi bi-search me-1"></i>Buscar Tutores &amp; Pets
+      </a>
+      <a *ngIf="authService.isAdmin()" routerLink="/staff" class="btn btn-danger">
+        <i class="bi bi-people-fill me-1"></i>Gerenciar Equipe
+      </a>
+    </div>
+  </div>
 
-<div class="container-fluid">
-  <div class="container xd-container">
-
-    <h2>Welcome</h2>
-    <div class="row">
-      <div class="col-md-12">
-        <img class="img-fluid" src="./assets/images/pets.png" alt="pets logo"/>
+  <!-- Cards de Resumo da Clínica -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small fw-semibold">TUTORES CADASTRADOS</div>
+          <div class="display-6 fw-bold text-dark mt-1">{{ ownersCount }}</div>
+          <a routerLink="/owners" class="small text-decoration-none">Ver todos os tutores →</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small fw-semibold">PETS ATENDIDOS</div>
+          <div class="display-6 fw-bold text-primary mt-1">{{ petsCount }}</div>
+          <span class="small text-muted">Vinculados aos tutores</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small fw-semibold">CONSULTAS EM ABERTO</div>
+          <div class="display-6 fw-bold text-warning mt-1">{{ pendingVisits }}</div>
+          <span class="small text-muted">{{ completedVisits }} concluída(s)</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small fw-semibold">CORPO CLÍNICO (VETS)</div>
+          <div class="display-6 fw-bold text-success mt-1">{{ vetsCount }}</div>
+          <a routerLink="/vets" class="small text-decoration-none">Ver veterinários →</a>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Guia Rápido de Como Usar o Sistema -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-dark text-white fw-semibold">
+      <i class="bi bi-journal-text me-2"></i>Como Usar o Sistema — Fluxo da Clínica
+    </div>
+    <div class="card-body">
+      <div class="row g-4">
+        <div class="col-md-4">
+          <h3 class="h6 fw-bold text-primary">1. Recepção &amp; Cadastro</h3>
+          <p class="small text-muted mb-0">
+            Acesse <strong>Owners → Add New</strong> para cadastrar o tutor com telefone de 10 ou 11 dígitos. Na ficha do tutor, clique em <strong>Add New Pet</strong> para registrar o animal.
+          </p>
+        </div>
+        <div class="col-md-4">
+          <h3 class="h6 fw-bold text-success">2. Agendamento &amp; Atendimento</h3>
+          <p class="small text-muted mb-0">
+            Dentro da ficha do tutor, cada pet exibe seu histórico de consultas. Clique em <strong>Add Visit</strong> para agendar um atendimento ou marque consultas abertas como <strong>Concluídas</strong>.
+          </p>
+        </div>
+        <div class="col-md-4">
+          <h3 class="h6 fw-bold text-danger">3. Administração &amp; Segurança</h3>
+          <p class="small text-muted mb-0">
+            Administradores gerenciam contas de <strong>Recepcionistas</strong> e <strong>Veterinários</strong> na aba <strong>Equipe</strong>. Todas as exclusões exigem confirmação explícita antes de apagar dados.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

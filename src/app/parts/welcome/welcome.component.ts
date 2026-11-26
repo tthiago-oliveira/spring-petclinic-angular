@@ -1,40 +1,51 @@
-/*
- *
- *  * Copyright 2016-2017 the original author or authors.
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
- *
- */
-
-
-/**
- * @author Vitaliy Fedoriv
- */
-
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../auth/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-welcome',
-  standalone: false,
   templateUrl: './welcome.component.html',
-  styleUrls: ['./welcome.component.css']
+  styleUrls: ['./welcome.component.css'],
+  standalone: false
 })
 export class WelcomeComponent implements OnInit {
+  ownersCount = 0;
+  petsCount = 0;
+  vetsCount = 0;
+  pendingVisits = 0;
+  completedVisits = 0;
 
-  constructor() {
+  constructor(public authService: AuthService, private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.http.get<any[]>(`${environment.REST_API_URL}owners`).subscribe({
+      next: (owners) => {
+        this.ownersCount = owners.length;
+        let pets = 0;
+        let pending = 0;
+        let done = 0;
+        for (const owner of owners) {
+          const ownerPets = owner.pets || [];
+          pets += ownerPets.length;
+          for (const pet of ownerPets) {
+            for (const visit of pet.visits || []) {
+              if ((visit.description || '').startsWith('[CONCLUÍDA]')) {
+                done++;
+              } else {
+                pending++;
+              }
+            }
+          }
+        }
+        this.petsCount = pets;
+        this.pendingVisits = pending;
+        this.completedVisits = done;
+      }
+    });
+
+    this.http.get<any[]>(`${environment.REST_API_URL}vets`).subscribe({
+      next: (vets) => (this.vetsCount = vets.length)
+    });
   }
-
-  ngOnInit() {
-  }
-
 }
